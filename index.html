@@ -277,9 +277,30 @@ D) Đáp án D"></textarea>
                 <span id="score-display" class="text-indigo-600">0/0</span>
             </p>
 
-            <p class="text-lg text-gray-600 mb-8">
-                Bạn đã trả lời đúng <span id="correct-count" class="font-bold text-green-600">0</span> trên <span id="max-questions" class="font-bold">0</span> câu.
-            </p>
+            <div class="mb-8 space-y-3">
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 rounded-xl border border-indigo-200">
+                    <p class="text-lg text-gray-700">
+                        📊 Điểm số: <span id="score-percentage" class="font-bold text-indigo-600 text-2xl">0</span><span class="text-indigo-600 text-xl">/10</span>
+                    </p>
+                </div>
+                
+                <div class="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-xl border border-blue-200">
+                    <p class="text-lg text-gray-700">
+                        ⏱️ Thời gian: <span id="time-taken" class="font-bold text-blue-600 text-xl">00:00:00</span>
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-green-50 p-4 rounded-xl border border-green-200">
+                        <p class="text-sm text-gray-600 mb-1">Trả lời đúng</p>
+                        <p class="text-3xl font-bold text-green-600"><span id="correct-count">0</span>/<span id="max-questions">0</span></p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-200">
+                        <p class="text-sm text-gray-600 mb-1">Trả lời sai</p>
+                        <p class="text-3xl font-bold text-red-600" id="wrong-count">0</p>
+                    </div>
+                </div>
+            </div>
 
             <div class="space-y-4">
                 <button id="retake-mistakes-button" onclick="startQuiz('review_mistakes')" class="w-full sm:w-2/3 mx-auto flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-xl shadow-md disabled:opacity-50 transition">
@@ -318,6 +339,7 @@ D) Đáp án D"></textarea>
         let totalWrong = 0;
         let timerInterval = null;
         let startTime = 0;
+        let elapsedTime = 0;
         let editingQuizId = null;
 
         const authContainer = document.getElementById('auth-container');
@@ -750,6 +772,8 @@ D) Đáp án D"></textarea>
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
+                // Lưu thời gian đã trôi qua
+                elapsedTime = Date.now() - startTime;
             }
         }
 
@@ -758,6 +782,7 @@ D) Đáp án D"></textarea>
             currentQuestionIndex = 0;
             totalCorrect = 0;
             totalWrong = 0;
+            elapsedTime = 0;
             
             stopTimer();
             
@@ -781,6 +806,7 @@ D) Đáp án D"></textarea>
                 return;
             }
 
+            // Trộn câu hỏi và trộn đáp án
             questions = shuffleArray(questionsToQuiz.map(q => ({...q})));
             questions = questions.map(q => shuffleQuestionOptions(q));
             userAnswers = Array(questions.length).fill(undefined);
@@ -957,8 +983,14 @@ D) Đáp án D"></textarea>
             updateStats();
             updateQuestionBox(currentQuestionIndex);
 
+            // Kiểm tra xem đã hoàn thành tất cả câu hỏi chưa
+            const allAnswered = userAnswers.every(answer => answer !== undefined);
+            
             setTimeout(() => {
-                if (currentQuestionIndex < questions.length - 1) {
+                if (allAnswered) {
+                    // Tự động hoàn thành bài thi khi đã trả lời hết
+                    showResults();
+                } else if (currentQuestionIndex < questions.length - 1) {
                     goToNextQuestion();
                 }
             }, 1500);
@@ -1009,10 +1041,23 @@ D) Đáp án D"></textarea>
                 }
             });
 
+            // Tính điểm trên thang 10
+            const score = ((totalCorrect / questions.length) * 10).toFixed(2);
+            
+            // Format thời gian
+            const hours = Math.floor(elapsedTime / 3600000);
+            const minutes = Math.floor((elapsedTime % 3600000) / 60000);
+            const seconds = Math.floor((elapsedTime % 60000) / 1000);
+            const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
             document.getElementById('score-display').textContent = `${totalCorrect}/${questions.length}`;
             document.getElementById('correct-count').textContent = totalCorrect;
             document.getElementById('wrong-count').textContent = totalWrong;
             document.getElementById('max-questions').textContent = questions.length;
+            
+            // Hiển thị điểm và thời gian
+            document.getElementById('score-percentage').textContent = score;
+            document.getElementById('time-taken').textContent = timeString;
 
             const retakeMistakesButton = document.getElementById('retake-mistakes-button');
             if (totalWrong === 0) {
