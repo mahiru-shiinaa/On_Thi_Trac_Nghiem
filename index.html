@@ -292,12 +292,23 @@ D) Đáp án D"></textarea>
         async function fetchQuizzes() {
             try {
                 const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 allQuizzes = data;
                 renderQuizCards();
             } catch (error) {
                 console.error('Error fetching quizzes:', error);
-                document.getElementById('loading').innerHTML = '<p class="text-red-600">Lỗi tải dữ liệu. Vui lòng thử lại sau.</p>';
+                document.getElementById('loading').innerHTML = `
+                    <div class="text-center">
+                        <p class="text-red-600 font-semibold mb-2">Lỗi tải dữ liệu</p>
+                        <p class="text-gray-600 text-sm mb-4">${error.message}</p>
+                        <button onclick="fetchQuizzes()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-xl">
+                            Thử lại
+                        </button>
+                    </div>
+                `;
             }
         }
 
@@ -308,6 +319,10 @@ D) Đáp án D"></textarea>
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, questions })
                 });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Lỗi tạo bài thi');
+                }
                 return await response.json();
             } catch (error) {
                 console.error('Error creating quiz:', error);
@@ -322,6 +337,10 @@ D) Đáp án D"></textarea>
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, questions })
                 });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Lỗi cập nhật bài thi');
+                }
                 return await response.json();
             } catch (error) {
                 console.error('Error updating quiz:', error);
@@ -334,6 +353,10 @@ D) Đáp án D"></textarea>
                 const response = await fetch(`${API_URL}/${id}`, {
                     method: 'DELETE'
                 });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Lỗi xóa bài thi');
+                }
                 return await response.json();
             } catch (error) {
                 console.error('Error deleting quiz:', error);
@@ -482,6 +505,11 @@ D) Đáp án D"></textarea>
                 return;
             }
 
+            // Disable button to prevent double submission
+            const saveBtn = document.getElementById('save-btn-text');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Đang lưu...';
+
             try {
                 if (editingQuizId) {
                     await updateQuiz(editingQuizId, title, parsedQuestions);
@@ -492,7 +520,8 @@ D) Đáp án D"></textarea>
                 }
                 showQuizList();
             } catch (error) {
-                alert('Có lỗi xảy ra. Vui lòng thử lại!');
+                alert('Có lỗi xảy ra: ' + error.message);
+                saveBtn.textContent = originalText;
             }
         }
 
