@@ -81,6 +81,201 @@
 
     <div id="app" class="max-w-7xl mx-auto">
         
+        <!-- Màn hình Đăng nhập/Đăng ký -->
+        <div id="auth-container" class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100 max-w-md mx-auto">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 text-center mb-6">Ôn Thi Trắc Nghiệm</h1>
+            
+            <div class="mb-6">
+                <label for="username-input" class="block text-lg font-semibold text-gray-700 mb-2">Username:</label>
+                <input 
+                    type="text" 
+                    id="username-input" 
+                    class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                    placeholder="Nhập username (5-10 ký tự, không dấu)"
+                    maxlength="10"
+                >
+                <p class="text-sm text-gray-500 mt-2">* Chỉ chữ cái không dấu và số, không khoảng trắng</p>
+            </div>
+
+            <div id="auth-error" class="mb-4 p-3 bg-red-100 text-red-700 rounded-xl hidden"></div>
+
+            <div class="space-y-3">
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition">
+                    Đăng Nhập
+                </button>
+                <button onclick="handleRegister()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition">
+                    Đăng Ký Tài Khoản Mới
+                </button>
+            </div>
+        </div>
+
+        <!-- Danh sách bài thi -->
+        <div id="quiz-list-container" class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100" style="display: none;">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800">Danh Sách Đề Thi</h1>
+                    <p class="text-sm text-gray-600 mt-1">Đăng nhập với: <span id="current-username" class="font-bold text-indigo-600"></span></p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="showCreateQuizForm()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition">
+                        + Tạo Đề Thi Mới
+                    </button>
+                    <button onclick="handleLogout()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition">
+                        Đăng Xuất
+                    </button>
+                </div>
+            </div>
+            <div id="quiz-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+            <div id="loading" class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                <p class="mt-4 text-gray-600">Đang tải...</p>
+            </div>
+            <div id="empty-state" class="text-center py-12" style="display: none;">
+                <p class="text-gray-600 text-lg">Chưa có bài thi nào. Hãy tạo bài thi đầu tiên!</p>
+            </div>
+        </div>
+
+        <!-- Form Tạo/Sửa Đề Thi -->
+        <div id="create-quiz-container" class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100" style="display: none;">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 text-center mb-6" id="form-title">Tạo Đề Thi Trắc Nghiệm</h1>
+            
+            <div class="mb-6">
+                <label for="quiz-title" class="block text-lg font-semibold text-gray-700 mb-2">Tên Bài Thi:</label>
+                <input type="text" id="quiz-title" class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Nhập tên bài thi...">
+            </div>
+
+            <div class="mb-6">
+                <label for="questions-input" class="block text-lg font-semibold text-gray-700 mb-2">Câu Hỏi:</label>
+                <textarea id="questions-input" rows="15" class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm" placeholder="Nhập câu hỏi theo định dạng (dòng đầu là câu hỏi, 4 dòng tiếp là đáp án):
+
+Câu 1: Nội dung câu hỏi?
+A. Đáp án A
+*B. Đáp án đúng (có dấu *)
+C. Đáp án C
+D. Đáp án D
+
+1. Câu hỏi thứ 2?
+A) Đáp án A
+B) Đáp án B
+*C) Đáp án đúng
+D) Đáp án D"></textarea>
+            </div>
+
+            <div class="flex gap-4 justify-center">
+                <button onclick="saveQuiz()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-md transition">
+                    <span id="save-btn-text">Tạo Đề Thi</span>
+                </button>
+                <button onclick="cancelEdit()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-xl shadow-md transition">
+                    Hủy
+                </button>
+            </div>
+        </div>
+
+        <!-- Màn Hình Bắt Đầu -->
+        <div id="start-container" class="result-card bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100 text-center" style="display: none;">
+            <h2 id="quiz-title-display" class="text-3xl font-bold text-gray-800 mb-4"></h2>
+            <p class="text-gray-600 mb-8">Tổng số câu hỏi: <span id="total-questions-start" class="font-bold text-indigo-600">0</span></p>
+            <button onclick="startQuiz('default')" class="w-full sm:w-2/3 mx-auto flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Bắt Đầu Bài Thi
+            </button>
+            <button onclick="showQuizList()" class="mt-4 w-full sm:w-2/3 mx-auto flex items-center justify-center bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition">
+                Quay Lại Danh Sách
+            </button>
+        </div>
+
+        <!-- Khối Quiz -->
+        <div id="quiz-container" style="display: none;">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Phần Câu Hỏi (Bên Trái) -->
+                <div class="lg:col-span-2">
+                    <div class="quiz-<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn Thi Trắc Nghiệm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .quiz-card, .result-card {
+            transition: all 0.3s ease-in-out;
+        }
+        .correct-answer {
+            background-color: #22c55e !important;
+            color: white !important;
+            border-color: #16a34a !important;
+        }
+        .wrong-answer {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
+        .option-button {
+            transition: background-color 0.15s, border-color 0.15s, transform 0.05s;
+        }
+        .option-button:not(.disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .question-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+        .question-box {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            background-color: white;
+        }
+        .question-box:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .question-box.correct {
+            background-color: #22c55e;
+            color: white;
+            border-color: #16a34a;
+        }
+        .question-box.wrong {
+            background-color: #ef4444;
+            color: white;
+            border-color: #dc2626;
+        }
+        .question-box.current {
+            border-color: #6366f1;
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .quiz-card-item {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .quiz-card-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8">
+
+    <div id="app" class="max-w-7xl mx-auto">
+        
         <!-- Danh sách bài thi -->
         <div id="quiz-list-container" class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100">
             <div class="flex justify-between items-center mb-6">
