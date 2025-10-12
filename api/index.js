@@ -1,53 +1,47 @@
 const { MongoClient, ObjectId } = require('mongodb');
 
 const uri = process.env.MONGODB_URI;
-let cachedClient = null;
-let cachedDb = null;
+const client = new MongoClient(uri);
+let db;
 
 async function connectDB() {
-  if (cachedDb) {
-    return cachedDb;
+  if (!db) {
+    await client.connect();
+    db = client.db('on_thi_trac_nghiem');
   }
-
-  if (!cachedClient) {
-    cachedClient = new MongoClient(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    await cachedClient.connect();
-  }
-
-  cachedDb = cachedClient.db('on_thi_trac_nghiem');
-  return cachedDb;
+  return db;
 }
 
-export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// CORS headers
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Content-Type': 'application/json'
+};
 
+module.exports = async (req, res) => {
   // Handle preflight
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(200).json({});
   }
 
   try {
-    const db = await connectDB();
-    const quizzes = db.collection('quizzes');
+    const database = await connectDB();
+    const quizzes = database.collection('quizzes');
 
-    const { method, query } = req;
-    const { slug } = query;
-    
+    const { method } = req;
+    const path = req.url.split('?')[0];
+
     // GET /api - Lấy tất cả bài thi
-    if (method === 'GET' && (!slug || slug.length === 0)) {
+    if (method === 'GET' && path === '/api') {
       const allQuizzes = await quizzes.find({}).sort({ createdAt: -1 }).toArray();
       return res.status(200).json(allQuizzes);
     }
 
     // GET /api/:id - Lấy một bài thi
-    if (method === 'GET' && slug && slug.length === 1) {
-      const id = slug[0];
+    if (method === 'GET' && path.startsWith('/api/')) {
+      const id = path.split('/')[2];
       const quiz = await quizzes.findOne({ _id: new ObjectId(id) });
       if (!quiz) {
         return res.status(404).json({ error: 'Không tìm thấy bài thi' });
@@ -56,7 +50,7 @@ export default async function handler(req, res) {
     }
 
     // POST /api - Tạo bài thi mới
-    if (method === 'POST' && (!slug || slug.length === 0)) {
+    if (method === 'POST' && path === '/api') {
       const { title, questions } = req.body;
       
       if (!title || !questions || questions.length === 0) {
@@ -71,13 +65,12 @@ export default async function handler(req, res) {
       };
 
       const result = await quizzes.insertOne(newQuiz);
-      const insertedQuiz = { _id: result.insertedId, ...newQuiz };
-      return res.status(201).json(insertedQuiz);
+      return res.status(201).json({ _id: result.insertedId, ...newQuiz });
     }
 
     // PUT /api/:id - Cập nhật bài thi
-    if (method === 'PUT' && slug && slug.length === 1) {
-      const id = slug[0];
+    if (method === 'PUT' && path.startsWith('/api/')) {
+      const id = path.split('/')[2];
       const { title, questions } = req.body;
 
       if (!title || !questions || questions.length === 0) {
@@ -103,8 +96,8 @@ export default async function handler(req, res) {
     }
 
     // DELETE /api/:id - Xóa bài thi
-    if (method === 'DELETE' && slug && slug.length === 1) {
-      const id = slug[0];
+    if (method === 'DELETE' && path.startsWith('/api/')) {
+      const id = path.split('/')[2];
       const result = await quizzes.deleteOne({ _id: new ObjectId(id) });
 
       if (result.deletedCount === 0) {
@@ -114,13 +107,10 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: 'Xóa thành công' });
     }
 
-    return res.status(404).json({ error: 'Endpoint không tồn tại' });
+    return res.status(404).json({ error: 'Không tìm thấy endpoint' });
 
   } catch (error) {
-    console.error('API Error:', error);
-    return res.status(500).json({ 
-      error: 'Lỗi server', 
-      message: error.message
-    });
+    console.error('Error:', error);
+    return res.status(500).json({ error: error.message });
   }
-}
+};
