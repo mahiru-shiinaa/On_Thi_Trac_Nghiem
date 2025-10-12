@@ -1,12 +1,12 @@
 {
   "name": "on-thi-trac-nghiem",
   "version": "1.0.0",
+  "type": "module",
   "description": "Ứng dụng ôn thi trắc nghiệm",
-  "main": "api/index.js",
-  "scripts": {
-    "start": "node api/index.js"
-  },
   "dependencies": {
     "mongodb": "^6.3.0"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }
