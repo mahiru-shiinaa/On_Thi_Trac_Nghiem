@@ -1034,12 +1034,18 @@ D) Đáp án D"
 
         if (mode === "review_mistakes") {
           const wrongQuestions = [];
-          for (let i = 0; i < allRawQuestions.length; i++) {
+          for (let i = 0; i < questions.length; i++) {
             if (
               userAnswers[i] !== undefined &&
-              userAnswers[i] !== allRawQuestions[i].correctIndex
+              userAnswers[i] !== questions[i].correctIndex
             ) {
-              wrongQuestions.push(allRawQuestions[i]);
+              // Tìm câu hỏi gốc từ allRawQuestions dựa trên nội dung câu hỏi
+              const originalQuestion = allRawQuestions.find(
+                (q) => q.q === questions[i].q
+              );
+              if (originalQuestion) {
+                wrongQuestions.push({ ...originalQuestion });
+              }
             }
           }
           questionsToQuiz = wrongQuestions;
@@ -1075,7 +1081,6 @@ D) Đáp án D"
         updateStats();
         displayQuestion();
       }
-
       function createQuestionGrid() {
         const grid = document.getElementById("question-grid");
         grid.innerHTML = "";
@@ -1342,7 +1347,13 @@ D) Đáp án D"
           "score-display"
         ).textContent = `${totalCorrect}/${questions.length}`;
         document.getElementById("correct-count").textContent = totalCorrect;
-        document.getElementById("wrong-count").textContent = totalWrong;
+
+        // Cập nhật tất cả các phần tử hiển thị số câu sai
+        const wrongCountElements = document.querySelectorAll("#wrong-count");
+        wrongCountElements.forEach((el) => {
+          el.textContent = totalWrong;
+        });
+
         document.getElementById("max-questions").textContent = questions.length;
 
         // Hiển thị điểm và thời gian
@@ -1369,7 +1380,6 @@ D) Đáp án D"
         quizContainer.style.display = "none";
         resultsContainer.style.display = "block";
       }
-
       // Initialize app - show auth screen
       authContainer.style.display = "block";
     </script>
