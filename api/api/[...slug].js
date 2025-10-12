@@ -21,7 +21,7 @@ async function connectDB() {
   return cachedDb;
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -29,26 +29,25 @@ module.exports = async (req, res) => {
 
   // Handle preflight
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   try {
     const db = await connectDB();
     const quizzes = db.collection('quizzes');
 
-    const { method, url } = req;
-    const urlParts = url.split('/').filter(p => p);
+    const { method, query } = req;
+    const { slug } = query;
     
     // GET /api - Lấy tất cả bài thi
-    if (method === 'GET' && urlParts.length === 1) {
+    if (method === 'GET' && (!slug || slug.length === 0)) {
       const allQuizzes = await quizzes.find({}).sort({ createdAt: -1 }).toArray();
       return res.status(200).json(allQuizzes);
     }
 
     // GET /api/:id - Lấy một bài thi
-    if (method === 'GET' && urlParts.length === 2) {
-      const id = urlParts[1];
+    if (method === 'GET' && slug && slug.length === 1) {
+      const id = slug[0];
       const quiz = await quizzes.findOne({ _id: new ObjectId(id) });
       if (!quiz) {
         return res.status(404).json({ error: 'Không tìm thấy bài thi' });
@@ -57,7 +56,7 @@ module.exports = async (req, res) => {
     }
 
     // POST /api - Tạo bài thi mới
-    if (method === 'POST' && urlParts.length === 1) {
+    if (method === 'POST' && (!slug || slug.length === 0)) {
       const { title, questions } = req.body;
       
       if (!title || !questions || questions.length === 0) {
@@ -72,12 +71,13 @@ module.exports = async (req, res) => {
       };
 
       const result = await quizzes.insertOne(newQuiz);
-      return res.status(201).json({ _id: result.insertedId, ...newQuiz });
+      const insertedQuiz = { _id: result.insertedId, ...newQuiz };
+      return res.status(201).json(insertedQuiz);
     }
 
     // PUT /api/:id - Cập nhật bài thi
-    if (method === 'PUT' && urlParts.length === 2) {
-      const id = urlParts[1];
+    if (method === 'PUT' && slug && slug.length === 1) {
+      const id = slug[0];
       const { title, questions } = req.body;
 
       if (!title || !questions || questions.length === 0) {
@@ -103,8 +103,8 @@ module.exports = async (req, res) => {
     }
 
     // DELETE /api/:id - Xóa bài thi
-    if (method === 'DELETE' && urlParts.length === 2) {
-      const id = urlParts[1];
+    if (method === 'DELETE' && slug && slug.length === 1) {
+      const id = slug[0];
       const result = await quizzes.deleteOne({ _id: new ObjectId(id) });
 
       if (result.deletedCount === 0) {
@@ -120,8 +120,7 @@ module.exports = async (req, res) => {
     console.error('API Error:', error);
     return res.status(500).json({ 
       error: 'Lỗi server', 
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: error.message
     });
   }
-};
+}
