@@ -415,7 +415,8 @@ D) Đáp án D"></textarea>
             if (!currentUser) return;
 
             try {
-                const response = await fetch(`${API_URL}?username=${currentUser}`);
+                // Gọi API quizzes.js với GET method
+                const response = await fetch(`${API_URL}/quizzes?username=${currentUser}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -438,7 +439,8 @@ D) Đáp án D"></textarea>
 
         async function createQuiz(title, questions) {
             try {
-                const response = await fetch(API_URL, {
+                // Gọi API quizzes.js với POST method
+                const response = await fetch(`${API_URL}/quizzes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, questions, username: currentUser })
@@ -456,6 +458,7 @@ D) Đáp án D"></textarea>
 
         async function updateQuiz(id, title, questions) {
             try {
+                // Gọi API [id].js với PUT method
                 const response = await fetch(`${API_URL}/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -474,6 +477,7 @@ D) Đáp án D"></textarea>
 
         async function deleteQuiz(id) {
             try {
+                // Gọi API [id].js với DELETE method
                 const response = await fetch(`${API_URL}/${id}?username=${currentUser}`, {
                     method: 'DELETE'
                 });
