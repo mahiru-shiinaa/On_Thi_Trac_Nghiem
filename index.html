@@ -111,18 +111,20 @@
 
         <!-- Danh sách bài thi -->
         <div id="quiz-list-container" class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100" style="display: none;">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800">Danh Sách Đề Thi</h1>
-                    <p class="text-sm text-gray-600 mt-1">Đăng nhập với: <span id="current-username" class="font-bold text-indigo-600"></span></p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="showCreateQuizForm()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition">
-                        + Tạo Đề Thi Mới
-                    </button>
-                    <button onclick="handleLogout()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition">
-                        Đăng Xuất
-                    </button>
+            <div class="mb-6">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-800">Danh Sách Đề Thi</h1>
+                        <p class="text-sm text-gray-600 mt-1">Đăng nhập với: <span id="current-username" class="font-bold text-indigo-600"></span></p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <button onclick="showCreateQuizForm()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 sm:px-6 rounded-xl shadow-md transition whitespace-nowrap">
+                            + Tạo Đề Thi Mới
+                        </button>
+                        <button onclick="handleLogout()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 sm:px-6 rounded-xl shadow-md transition">
+                            Đăng Xuất
+                        </button>
+                    </div>
                 </div>
             </div>
             <div id="quiz-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
