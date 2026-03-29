@@ -517,27 +517,27 @@ Giải thích: Vì đáp án B là đúng do..."
                 <!-- Cài đặt tự động chuyển câu -->
                 <div class="settings-panel mt-1" style="margin-bottom:0;">
                   <div id="settings-row" class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-semibold text-gray-700">⚙️ Tự động chuyển câu</span>
                     <div class="flex items-center gap-2">
-                      <span class="text-xs font-semibold text-gray-700">⚙️ Tự động chuyển câu</span>
+                      <div id="auto-advance-time-wrap" class="flex items-center gap-1">
+                        <span class="text-xs text-gray-600">Sau</span>
+                        <input
+                          type="number"
+                          id="auto-advance-seconds"
+                          value="1"
+                          min="1"
+                          max="60"
+                          onkeypress="return onlyNumber(event)"
+                          oninput="onChangeAdvanceSeconds()"
+                          class="w-12 text-center border-2 border-indigo-200 rounded-lg py-1 px-1 text-xs font-bold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                        />
+                        <span class="text-xs text-gray-600">giây</span>
+                      </div>
                       <label class="toggle-switch">
                         <input type="checkbox" id="auto-advance-toggle" checked onchange="onToggleAutoAdvance()" />
                         <span class="toggle-slider"></span>
                       </label>
                       <span id="auto-advance-status" class="text-xs font-semibold text-indigo-600">Bật</span>
-                    </div>
-                    <div id="auto-advance-time-wrap" class="flex items-center gap-1">
-                      <span class="text-xs text-gray-600">Sau</span>
-                      <input
-                        type="number"
-                        id="auto-advance-seconds"
-                        value="1"
-                        min="1"
-                        max="60"
-                        onkeypress="return onlyNumber(event)"
-                        oninput="onChangeAdvanceSeconds()"
-                        class="w-12 text-center border-2 border-indigo-200 rounded-lg py-1 px-1 text-xs font-bold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                      />
-                      <span class="text-xs text-gray-600">giây</span>
                     </div>
                   </div>
                   <!-- Countdown bar -->
