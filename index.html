@@ -80,6 +80,81 @@
         transform: translateY(-4px);
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
       }
+      /* Toggle switch */
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #cbd5e1;
+        transition: 0.3s;
+        border-radius: 24px;
+      }
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+      }
+      input:checked + .toggle-slider {
+        background-color: #6366f1;
+      }
+      input:checked + .toggle-slider:before {
+        transform: translateX(20px);
+      }
+      /* Explanation box */
+      .explanation-box {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-left: 4px solid #0ea5e9;
+        border-radius: 0 8px 8px 0;
+        padding: 10px 14px;
+        margin-top: 10px;
+        font-size: 0.92rem;
+        color: #0c4a6e;
+      }
+      .explanation-box .expl-label {
+        font-weight: 700;
+        color: #0369a1;
+        margin-bottom: 2px;
+      }
+      /* Settings panel */
+      .settings-panel {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      /* Countdown bar */
+      .countdown-bar-wrap {
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 6px;
+      }
+      .countdown-bar {
+        height: 100%;
+        background: #6366f1;
+        border-radius: 2px;
+        transition: width linear;
+      }
     </style>
   </head>
   <body class="min-h-screen p-4 sm:p-8">
@@ -228,7 +303,7 @@
             id="questions-input"
             rows="15"
             class="w-full p-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm"
-            placeholder="Nhập câu hỏi theo định dạng (dòng đầu là câu hỏi, 4 dòng tiếp là đáp án):
+            placeholder="Nhập câu hỏi theo định dạng:
 
 Câu 1: Nội dung câu hỏi?
 A. Đáp án A
@@ -236,12 +311,16 @@ A. Đáp án A
 C. Đáp án C
 D. Đáp án D
 
-1. Câu hỏi thứ 2?
-A) Đáp án A
-B) Đáp án B
-*C) Đáp án đúng
-D) Đáp án D"
+Câu 2: Nội dung câu hỏi có giải thích?
+A. Đáp án A
+*B. Đáp án đúng
+C. Đáp án C
+D. Đáp án D
+Giải thích: Vì đáp án B là đúng do..."
           ></textarea>
+          <p class="text-sm text-gray-500 mt-2">
+            💡 Thêm dòng <strong>Giải thích: ...</strong> sau đáp án D để hiển thị giải thích khi trả lời.
+          </p>
         </div>
 
         <div class="flex gap-4 justify-center">
@@ -312,7 +391,7 @@ D) Đáp án D"
             <div
               class="quiz-card bg-white p-6 sm:p-8 rounded-2xl shadow-xl border border-gray-100"
             >
-              <div class="flex justify-between items-center mb-6 border-b pb-4">
+              <div class="flex justify-between items-center mb-4 border-b pb-4">
                 <div>
                   <p class="text-lg font-semibold text-indigo-600">
                     Câu: <span id="current-question-number">1</span>/<span
@@ -335,6 +414,38 @@ D) Đáp án D"
                 </p>
               </div>
 
+              <!-- Cài đặt tự động chuyển câu -->
+              <div class="settings-panel mb-5">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-gray-700">⚙️ Tự động chuyển câu</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="auto-advance-toggle" checked onchange="onToggleAutoAdvance()" />
+                      <span class="toggle-slider"></span>
+                    </label>
+                    <span id="auto-advance-status" class="text-xs font-semibold text-indigo-600">Bật</span>
+                  </div>
+                  <div id="auto-advance-time-wrap" class="flex items-center gap-2">
+                    <span class="text-sm text-gray-600">Sau</span>
+                    <input
+                      type="number"
+                      id="auto-advance-seconds"
+                      value="1"
+                      min="1"
+                      max="60"
+                      onkeypress="return onlyNumber(event)"
+                      oninput="onChangeAdvanceSeconds()"
+                      class="w-14 text-center border-2 border-indigo-200 rounded-lg py-1 px-1 text-sm font-bold text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    />
+                    <span class="text-sm text-gray-600">giây</span>
+                  </div>
+                </div>
+                <!-- Countdown bar (chỉ hiện khi đang đếm ngược) -->
+                <div id="countdown-bar-wrap" class="countdown-bar-wrap" style="display:none;">
+                  <div id="countdown-bar" class="countdown-bar" style="width:100%"></div>
+                </div>
+              </div>
+
               <h2
                 id="question-text"
                 class="text-xl font-bold mb-6 text-gray-800"
@@ -346,9 +457,15 @@ D) Đáp án D"
 
               <div
                 id="feedback-message"
-                class="mt-6 text-center text-lg font-semibold py-2 rounded-xl"
+                class="mt-4 text-center text-lg font-semibold py-2 rounded-xl"
                 style="display: none"
               ></div>
+
+              <!-- Explanation box -->
+              <div id="explanation-box" class="explanation-box" style="display:none;">
+                <div class="expl-label">💡 Giải thích:</div>
+                <div id="explanation-text"></div>
+              </div>
 
               <!-- Navigation Buttons -->
               <div class="flex justify-between mt-6 pt-6 border-t">
@@ -511,7 +628,7 @@ D) Đáp án D"
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.398 16c-.77 1.333.192 3 1.732 3z"
               />
             </svg>
-            Làm Lại Câu Sai (<span id="wrong-count">0</span> câu)
+            Làm Lại Câu Sai (<span id="wrong-count-result">0</span> câu)
           </button>
           <button
             onclick="startQuiz('default')"
@@ -562,39 +679,86 @@ D) Đáp án D"
       let elapsedTime = 0;
       let editingQuizId = null;
 
+      // Auto-advance settings
+      let autoAdvanceEnabled = true;
+      let autoAdvanceSeconds = 1;
+      let autoAdvanceTimer = null;
+      let countdownAnimFrame = null;
+
       const authContainer = document.getElementById("auth-container");
       const quizListContainer = document.getElementById("quiz-list-container");
-      const createQuizContainer = document.getElementById(
-        "create-quiz-container"
-      );
+      const createQuizContainer = document.getElementById("create-quiz-container");
       const startContainer = document.getElementById("start-container");
       const quizContainer = document.getElementById("quiz-container");
       const resultsContainer = document.getElementById("results-container");
 
-      // Auth Functions
+      // ---- Auto-advance helpers ----
+      function onlyNumber(e) {
+        return /[0-9]/.test(e.key);
+      }
+
+      function onToggleAutoAdvance() {
+        autoAdvanceEnabled = document.getElementById("auto-advance-toggle").checked;
+        document.getElementById("auto-advance-status").textContent = autoAdvanceEnabled ? "Bật" : "Tắt";
+        document.getElementById("auto-advance-time-wrap").style.display = autoAdvanceEnabled ? "flex" : "none";
+        clearAutoAdvance();
+      }
+
+      function onChangeAdvanceSeconds() {
+        let val = parseInt(document.getElementById("auto-advance-seconds").value, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        autoAdvanceSeconds = val;
+      }
+
+      function clearAutoAdvance() {
+        if (autoAdvanceTimer) {
+          clearTimeout(autoAdvanceTimer);
+          autoAdvanceTimer = null;
+        }
+        if (countdownAnimFrame) {
+          cancelAnimationFrame(countdownAnimFrame);
+          countdownAnimFrame = null;
+        }
+        document.getElementById("countdown-bar-wrap").style.display = "none";
+        document.getElementById("countdown-bar").style.width = "100%";
+      }
+
+      function startAutoAdvanceCountdown(callback) {
+        clearAutoAdvance();
+        if (!autoAdvanceEnabled) return;
+
+        const ms = autoAdvanceSeconds * 1000;
+        const barEl = document.getElementById("countdown-bar");
+        const barWrap = document.getElementById("countdown-bar-wrap");
+        barWrap.style.display = "block";
+        barEl.style.width = "100%";
+        // Remove transition for immediate reset, then add back
+        barEl.style.transition = "none";
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            barEl.style.transition = `width ${ms}ms linear`;
+            barEl.style.width = "0%";
+          });
+        });
+
+        autoAdvanceTimer = setTimeout(() => {
+          barWrap.style.display = "none";
+          callback();
+        }, ms);
+      }
+
+      // ---- Auth Functions ----
       async function handleLogin() {
         const username = document.getElementById("username-input").value.trim();
-        const errorDiv = document.getElementById("auth-error");
-
-        if (!username) {
-          showError("Vui lòng nhập username!");
-          return;
-        }
-
+        if (!username) { showError("Vui lòng nhập username!"); return; }
         try {
           const response = await fetch(`${API_URL}/auth`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, action: "login" }),
           });
-
           const data = await response.json();
-
-          if (!response.ok) {
-            showError(data.error || "Đăng nhập thất bại");
-            return;
-          }
-
+          if (!response.ok) { showError(data.error || "Đăng nhập thất bại"); return; }
           currentUser = data.username;
           hideError();
           showQuizList();
@@ -605,26 +769,15 @@ D) Đáp án D"
 
       async function handleRegister() {
         const username = document.getElementById("username-input").value.trim();
-
-        if (!username) {
-          showError("Vui lòng nhập username!");
-          return;
-        }
-
+        if (!username) { showError("Vui lòng nhập username!"); return; }
         try {
           const response = await fetch(`${API_URL}/auth`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, action: "register" }),
           });
-
           const data = await response.json();
-
-          if (!response.ok) {
-            showError(data.error || "Đăng ký thất bại");
-            return;
-          }
-
+          if (!response.ok) { showError(data.error || "Đăng ký thất bại"); return; }
           currentUser = data.username;
           hideError();
           alert("Đăng ký thành công!");
@@ -652,208 +805,161 @@ D) Đáp án D"
       }
 
       function hideError() {
-        const errorDiv = document.getElementById("auth-error");
-        errorDiv.classList.add("hidden");
+        document.getElementById("auth-error").classList.add("hidden");
       }
 
-      // API Functions
+      // ---- API Functions ----
       async function fetchQuizzes() {
         if (!currentUser) return;
-
         try {
-          // Gọi API quizzes.js với GET method
-          const response = await fetch(
-            `${API_URL}/quizzes?username=${currentUser}`
-          );
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          allQuizzes = data;
+          const response = await fetch(`${API_URL}/quizzes?username=${currentUser}`);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          allQuizzes = await response.json();
           renderQuizCards();
         } catch (error) {
           console.error("Error fetching quizzes:", error);
           document.getElementById("loading").innerHTML = `
-                    <div class="text-center">
-                        <p class="text-red-600 font-semibold mb-2">Lỗi tải dữ liệu</p>
-                        <p class="text-gray-600 text-sm mb-4">${error.message}</p>
-                        <button onclick="fetchQuizzes()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-xl">
-                            Thử lại
-                        </button>
-                    </div>
-                `;
+            <div class="text-center">
+              <p class="text-red-600 font-semibold mb-2">Lỗi tải dữ liệu</p>
+              <p class="text-gray-600 text-sm mb-4">${error.message}</p>
+              <button onclick="fetchQuizzes()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-xl">Thử lại</button>
+            </div>`;
         }
       }
 
       async function createQuiz(title, questions) {
-        try {
-          // Gọi API quizzes.js với POST method
-          const response = await fetch(`${API_URL}/quizzes`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, questions, username: currentUser }),
-          });
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Lỗi tạo bài thi");
-          }
-          return await response.json();
-        } catch (error) {
-          console.error("Error creating quiz:", error);
-          throw error;
+        const response = await fetch(`${API_URL}/quizzes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, questions, username: currentUser }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Lỗi tạo bài thi");
         }
+        return await response.json();
       }
 
       async function updateQuiz(id, title, questions) {
-        try {
-          // Gọi API [id].js với PUT method
-          const response = await fetch(`${API_URL}/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, questions, username: currentUser }),
-          });
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Lỗi cập nhật bài thi");
-          }
-          return await response.json();
-        } catch (error) {
-          console.error("Error updating quiz:", error);
-          throw error;
+        const response = await fetch(`${API_URL}/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, questions, username: currentUser }),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Lỗi cập nhật bài thi");
         }
+        return await response.json();
       }
 
       async function deleteQuiz(id) {
-        try {
-          // Gọi API [id].js với DELETE method
-          const response = await fetch(
-            `${API_URL}/${id}?username=${currentUser}`,
-            {
-              method: "DELETE",
-            }
-          );
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Lỗi xóa bài thi");
-          }
-          return await response.json();
-        } catch (error) {
-          console.error("Error deleting quiz:", error);
-          throw error;
+        const response = await fetch(`${API_URL}/${id}?username=${currentUser}`, { method: "DELETE" });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Lỗi xóa bài thi");
         }
+        return await response.json();
       }
 
-      // Render Functions
+      // ---- Render Functions ----
       function renderQuizCards() {
         const cardsContainer = document.getElementById("quiz-cards");
         const loading = document.getElementById("loading");
         const emptyState = document.getElementById("empty-state");
-
         loading.style.display = "none";
-
         if (allQuizzes.length === 0) {
           cardsContainer.innerHTML = "";
           emptyState.style.display = "block";
           return;
         }
-
         emptyState.style.display = "none";
-        cardsContainer.innerHTML = allQuizzes
-          .map(
-            (quiz) => `
-                <div class="quiz-card-item bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl shadow-md border border-indigo-200">
-                    <h3 class="text-xl font-bold text-gray-800 mb-3">${quiz.title}</h3>
-                    <p class="text-gray-600 mb-4">
-                        <span class="font-semibold">📝 Tổng số câu:</span> 
-                        <span class="text-indigo-600 font-bold">${quiz.questions.length}</span>
-                    </p>
-                    <div class="flex flex-col gap-2">
-                        <button onclick="loadQuizToStart('${quiz._id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
-                            🎯 Ôn Thi
-                        </button>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="editQuiz('${quiz._id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">
-                                ✏️ Sửa
-                            </button>
-                            <button onclick="confirmDeleteQuiz('${quiz._id}')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">
-                                🗑️ Xóa
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `
-          )
-          .join("");
+        cardsContainer.innerHTML = allQuizzes.map((quiz) => `
+          <div class="quiz-card-item bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl shadow-md border border-indigo-200">
+            <h3 class="text-xl font-bold text-gray-800 mb-3">${quiz.title}</h3>
+            <p class="text-gray-600 mb-4">
+              <span class="font-semibold">📝 Tổng số câu:</span>
+              <span class="text-indigo-600 font-bold">${quiz.questions.length}</span>
+            </p>
+            <div class="flex flex-col gap-2">
+              <button onclick="loadQuizToStart('${quiz._id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                🎯 Ôn Thi
+              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="editQuiz('${quiz._id}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                  ✏️ Sửa
+                </button>
+                <button onclick="confirmDeleteQuiz('${quiz._id}')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                  🗑️ Xóa
+                </button>
+              </div>
+            </div>
+          </div>`).join("");
       }
 
+      // ---- Parse questions (hỗ trợ "Giải thích:") ----
       function parseQuestions(text) {
         const questions = [];
-        const questionBlocks = text
-          .split(/\n\s*\n/)
-          .filter((block) => block.trim());
+        const questionBlocks = text.split(/\n\s*\n/).filter((block) => block.trim());
 
         for (let block of questionBlocks) {
-          const lines = block
-            .split("\n")
-            .map((line) => line.trim())
-            .filter((line) => line);
+          const lines = block.split("\n").map((line) => line.trim()).filter((line) => line);
           if (lines.length < 5) continue;
 
           let questionText = lines[0];
-          questionText = questionText
-            .replace(/^(Câu\s+)?\d+[.:)]\s*/, "")
-            .trim();
-
+          questionText = questionText.replace(/^(Câu\s+)?\d+[.:)]\s*/, "").trim();
           if (!questionText) continue;
 
           const options = [];
           let correctIndex = -1;
+          let explanation = null;
 
-          for (let i = 1; i < lines.length && i <= 4; i++) {
-            let optionText = lines[i];
-            const isCorrect = optionText.startsWith("*");
+          for (let i = 1; i < lines.length; i++) {
+            let line = lines[i];
 
-            if (isCorrect) {
-              optionText = optionText.substring(1);
-              correctIndex = options.length;
+            // Kiểm tra dòng Giải thích (không phân biệt hoa thường)
+            if (/^gi[aả]i\s*th[ií]ch\s*[:：]/i.test(line)) {
+              explanation = line.replace(/^gi[aả]i\s*th[ií]ch\s*[:：]\s*/i, "").trim();
+              continue;
             }
 
-            optionText = optionText.replace(/^[A-D][.:)]\s*/, "").trim();
-            options.push(optionText);
+            if (options.length < 4) {
+              const isCorrect = line.startsWith("*");
+              if (isCorrect) {
+                line = line.substring(1);
+                correctIndex = options.length;
+              }
+              line = line.replace(/^[A-D][.:)]\s*/, "").trim();
+              options.push(line);
+            }
           }
 
           if (options.length === 4 && correctIndex !== -1) {
-            questions.push({
-              q: questionText,
-              options: options,
-              correctIndex: correctIndex,
-            });
+            const q = { q: questionText, options, correctIndex };
+            if (explanation) q.explanation = explanation;
+            questions.push(q);
           }
         }
-
         return questions;
       }
 
       function formatQuestionsToText(questions) {
-        return questions
-          .map((q, index) => {
-            const lines = [`Câu ${index + 1}: ${q.q}`];
-            q.options.forEach((opt, i) => {
-              const prefix = i === q.correctIndex ? "*" : "";
-              lines.push(`${prefix}${String.fromCharCode(65 + i)}. ${opt}`);
-            });
-            return lines.join("\n");
-          })
-          .join("\n\n");
+        return questions.map((q, index) => {
+          const lines = [`Câu ${index + 1}: ${q.q}`];
+          q.options.forEach((opt, i) => {
+            const prefix = i === q.correctIndex ? "*" : "";
+            lines.push(`${prefix}${String.fromCharCode(65 + i)}. ${opt}`);
+          });
+          if (q.explanation) {
+            lines.push(`Giải thích: ${q.explanation}`);
+          }
+          return lines.join("\n");
+        }).join("\n\n");
       }
 
-      // UI Functions
+      // ---- UI Functions ----
       function showQuizList() {
-        if (!currentUser) {
-          handleLogout();
-          return;
-        }
-
+        if (!currentUser) { handleLogout(); return; }
         document.getElementById("current-username").textContent = currentUser;
         authContainer.style.display = "none";
         quizListContainer.style.display = "block";
@@ -866,12 +972,10 @@ D) Đáp án D"
 
       function showCreateQuizForm() {
         editingQuizId = null;
-        document.getElementById("form-title").textContent =
-          "Tạo Đề Thi Trắc Nghiệm";
+        document.getElementById("form-title").textContent = "Tạo Đề Thi Trắc Nghiệm";
         document.getElementById("save-btn-text").textContent = "Tạo Đề Thi";
         document.getElementById("quiz-title").value = "";
         document.getElementById("questions-input").value = "";
-
         authContainer.style.display = "none";
         quizListContainer.style.display = "none";
         createQuizContainer.style.display = "block";
@@ -887,31 +991,17 @@ D) Đáp án D"
 
       async function saveQuiz() {
         const title = document.getElementById("quiz-title").value.trim();
-        const questionsText = document
-          .getElementById("questions-input")
-          .value.trim();
-
-        if (!title) {
-          alert("Vui lòng nhập tên bài thi!");
-          return;
-        }
-
-        if (!questionsText) {
-          alert("Vui lòng nhập câu hỏi!");
-          return;
-        }
-
+        const questionsText = document.getElementById("questions-input").value.trim();
+        if (!title) { alert("Vui lòng nhập tên bài thi!"); return; }
+        if (!questionsText) { alert("Vui lòng nhập câu hỏi!"); return; }
         const parsedQuestions = parseQuestions(questionsText);
-
         if (parsedQuestions.length === 0) {
           alert("Không tìm thấy câu hỏi hợp lệ! Vui lòng kiểm tra định dạng.");
           return;
         }
-
         const saveBtn = document.getElementById("save-btn-text");
         const originalText = saveBtn.textContent;
         saveBtn.textContent = "Đang lưu...";
-
         try {
           if (editingQuizId) {
             await updateQuiz(editingQuizId, title, parsedQuestions);
@@ -930,15 +1020,11 @@ D) Đáp án D"
       function loadQuizToStart(id) {
         const quiz = allQuizzes.find((q) => q._id === id);
         if (!quiz) return;
-
         currentQuizId = id;
         allRawQuestions = quiz.questions;
         quizTitle = quiz.title;
-
         document.getElementById("quiz-title-display").textContent = quizTitle;
-        document.getElementById("total-questions-start").textContent =
-          allRawQuestions.length;
-
+        document.getElementById("total-questions-start").textContent = allRawQuestions.length;
         authContainer.style.display = "none";
         quizListContainer.style.display = "none";
         startContainer.style.display = "block";
@@ -947,14 +1033,11 @@ D) Đáp án D"
       async function editQuiz(id) {
         const quiz = allQuizzes.find((q) => q._id === id);
         if (!quiz) return;
-
         editingQuizId = id;
         document.getElementById("form-title").textContent = "Chỉnh Sửa Đề Thi";
         document.getElementById("save-btn-text").textContent = "Cập Nhật";
         document.getElementById("quiz-title").value = quiz.title;
-        document.getElementById("questions-input").value =
-          formatQuestionsToText(quiz.questions);
-
+        document.getElementById("questions-input").value = formatQuestionsToText(quiz.questions);
         authContainer.style.display = "none";
         quizListContainer.style.display = "none";
         createQuizContainer.style.display = "block";
@@ -963,7 +1046,6 @@ D) Đáp án D"
       async function confirmDeleteQuiz(id) {
         const quiz = allQuizzes.find((q) => q._id === id);
         if (!quiz) return;
-
         if (confirm(`Bạn có chắc muốn xóa bài thi "${quiz.title}"?`)) {
           try {
             await deleteQuiz(id);
@@ -987,14 +1069,8 @@ D) Đáp án D"
       function shuffleQuestionOptions(question) {
         const originalCorrectOption = question.options[question.correctIndex];
         const shuffledOptions = shuffleArray([...question.options]);
-        const newCorrectIndex = shuffledOptions.findIndex(
-          (option) => option === originalCorrectOption
-        );
-        return {
-          ...question,
-          options: shuffledOptions,
-          correctIndex: newCorrectIndex,
-        };
+        const newCorrectIndex = shuffledOptions.findIndex((opt) => opt === originalCorrectOption);
+        return { ...question, options: shuffledOptions, correctIndex: newCorrectIndex };
       }
 
       function startTimer() {
@@ -1004,11 +1080,8 @@ D) Đáp án D"
           const hours = Math.floor(elapsed / 3600000);
           const minutes = Math.floor((elapsed % 3600000) / 60000);
           const seconds = Math.floor((elapsed % 60000) / 1000);
-
-          const timeString = `${String(hours).padStart(2, "0")}:${String(
-            minutes
-          ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-          document.getElementById("timer-display").textContent = timeString;
+          document.getElementById("timer-display").textContent =
+            `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
         }, 1000);
       }
 
@@ -1016,7 +1089,6 @@ D) Đáp án D"
         if (timerInterval) {
           clearInterval(timerInterval);
           timerInterval = null;
-          // Lưu thời gian đã trôi qua
           elapsedTime = Date.now() - startTime;
         }
       }
@@ -1027,33 +1099,27 @@ D) Đáp án D"
         totalCorrect = 0;
         totalWrong = 0;
         elapsedTime = 0;
-
         stopTimer();
+        clearAutoAdvance();
+
+        // Sync auto-advance UI state
+        autoAdvanceEnabled = document.getElementById("auto-advance-toggle").checked;
+        autoAdvanceSeconds = parseInt(document.getElementById("auto-advance-seconds").value, 10) || 1;
 
         let questionsToQuiz = [...allRawQuestions];
 
         if (mode === "review_mistakes") {
           const wrongQuestions = [];
           for (let i = 0; i < questions.length; i++) {
-            if (
-              userAnswers[i] !== undefined &&
-              userAnswers[i] !== questions[i].correctIndex
-            ) {
-              // Tìm câu hỏi gốc từ allRawQuestions dựa trên nội dung câu hỏi
-              const originalQuestion = allRawQuestions.find(
-                (q) => q.q === questions[i].q
-              );
-              if (originalQuestion) {
-                wrongQuestions.push({ ...originalQuestion });
-              }
+            if (userAnswers[i] !== undefined && userAnswers[i] !== questions[i].correctIndex) {
+              const originalQuestion = allRawQuestions.find((q) => q.q === questions[i].q);
+              if (originalQuestion) wrongQuestions.push({ ...originalQuestion });
             }
           }
           questionsToQuiz = wrongQuestions;
-          document.getElementById("quiz-mode-display").textContent =
-            "Ôn Lại Câu Sai";
+          document.getElementById("quiz-mode-display").textContent = "Ôn Lại Câu Sai";
         } else {
-          document.getElementById("quiz-mode-display").textContent =
-            "Làm Bài Mới";
+          document.getElementById("quiz-mode-display").textContent = "Làm Bài Mới";
         }
 
         if (questionsToQuiz.length === 0 && mode === "review_mistakes") {
@@ -1061,15 +1127,12 @@ D) Đáp án D"
           return;
         }
 
-        // Trộn câu hỏi và trộn đáp án
         questions = shuffleArray(questionsToQuiz.map((q) => ({ ...q })));
         questions = questions.map((q) => shuffleQuestionOptions(q));
         userAnswers = Array(questions.length).fill(undefined);
 
-        document.getElementById("total-questions").textContent =
-          questions.length;
-        document.getElementById("total-questions-sidebar").textContent =
-          questions.length;
+        document.getElementById("total-questions").textContent = questions.length;
+        document.getElementById("total-questions-sidebar").textContent = questions.length;
 
         authContainer.style.display = "none";
         startContainer.style.display = "none";
@@ -1081,10 +1144,10 @@ D) Đáp án D"
         updateStats();
         displayQuestion();
       }
+
       function createQuestionGrid() {
         const grid = document.getElementById("question-grid");
         grid.innerHTML = "";
-
         for (let i = 0; i < questions.length; i++) {
           const box = document.createElement("div");
           box.className = "question-box";
@@ -1098,13 +1161,8 @@ D) Đáp án D"
       function updateQuestionBox(index) {
         const box = document.getElementById(`q-box-${index}`);
         if (!box) return;
-
         box.classList.remove("correct", "wrong", "answered", "current");
-
-        if (index === currentQuestionIndex) {
-          box.classList.add("current");
-        }
-
+        if (index === currentQuestionIndex) box.classList.add("current");
         if (userAnswers[index] !== undefined) {
           if (userAnswers[index] === questions[index].correctIndex) {
             box.classList.add("correct");
@@ -1115,49 +1173,38 @@ D) Đáp án D"
       }
 
       function updateAllQuestionBoxes() {
-        for (let i = 0; i < questions.length; i++) {
-          updateQuestionBox(i);
-        }
+        for (let i = 0; i < questions.length; i++) updateQuestionBox(i);
       }
 
       function updateStats() {
         totalCorrect = 0;
         totalWrong = 0;
         let answeredCount = 0;
-
         for (let i = 0; i < questions.length; i++) {
           if (userAnswers[i] !== undefined) {
             answeredCount++;
-            if (userAnswers[i] === questions[i].correctIndex) {
-              totalCorrect++;
-            } else {
-              totalWrong++;
-            }
+            if (userAnswers[i] === questions[i].correctIndex) totalCorrect++;
+            else totalWrong++;
           }
         }
-
         document.getElementById("answered-count").textContent = answeredCount;
-        document.getElementById("correct-count-header").textContent =
-          totalCorrect;
+        document.getElementById("correct-count-header").textContent = totalCorrect;
         document.getElementById("wrong-count-header").textContent = totalWrong;
-        document.getElementById("correct-count-sidebar").textContent =
-          totalCorrect;
+        document.getElementById("correct-count-sidebar").textContent = totalCorrect;
         document.getElementById("wrong-count-sidebar").textContent = totalWrong;
       }
 
       function displayQuestion() {
-        if (currentQuestionIndex >= questions.length) {
-          return;
-        }
+        clearAutoAdvance();
+        if (currentQuestionIndex >= questions.length) return;
 
         const currentQuestion = questions[currentQuestionIndex];
 
-        document.getElementById("current-question-number").textContent =
-          currentQuestionIndex + 1;
-        document.getElementById("question-text").textContent = `Câu ${
-          currentQuestionIndex + 1
-        }: ${currentQuestion.q}`;
+        document.getElementById("current-question-number").textContent = currentQuestionIndex + 1;
+        document.getElementById("question-text").textContent =
+          `Câu ${currentQuestionIndex + 1}: ${currentQuestion.q}`;
         document.getElementById("feedback-message").style.display = "none";
+        document.getElementById("explanation-box").style.display = "none";
 
         const optionsContainer = document.getElementById("options-container");
         optionsContainer.innerHTML = "";
@@ -1167,24 +1214,14 @@ D) Đáp án D"
           optionButton.id = `option-${index}`;
           optionButton.className =
             "option-button w-full text-left p-4 rounded-xl border-2 border-indigo-200 bg-white text-gray-800 font-medium shadow-sm hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-500";
-          optionButton.innerHTML = `<span class="font-bold pr-3">${String.fromCharCode(
-            65 + index
-          )}.</span> ${optionText}`;
+          optionButton.innerHTML = `<span class="font-bold pr-3">${String.fromCharCode(65 + index)}.</span> ${optionText}`;
 
           if (userAnswers[currentQuestionIndex] === index) {
-            if (index === currentQuestion.correctIndex) {
-              optionButton.classList.add("correct-answer");
-            } else {
-              optionButton.classList.add("wrong-answer");
-            }
+            optionButton.classList.add(index === currentQuestion.correctIndex ? "correct-answer" : "wrong-answer");
             optionButton.classList.add("disabled");
             optionButton.onclick = null;
-          } else if (
-            userAnswers[currentQuestionIndex] !== undefined &&
-            index === currentQuestion.correctIndex
-          ) {
-            optionButton.classList.add("correct-answer");
-            optionButton.classList.add("disabled");
+          } else if (userAnswers[currentQuestionIndex] !== undefined && index === currentQuestion.correctIndex) {
+            optionButton.classList.add("correct-answer", "disabled");
             optionButton.onclick = null;
           } else if (userAnswers[currentQuestionIndex] === undefined) {
             optionButton.onclick = () => handleAnswer(index);
@@ -1196,33 +1233,29 @@ D) Đáp án D"
           optionsContainer.appendChild(optionButton);
         });
 
+        // Nếu câu này đã trả lời, hiện feedback + giải thích
         if (userAnswers[currentQuestionIndex] !== undefined) {
           const feedbackMessage = document.getElementById("feedback-message");
-          feedbackMessage.classList.remove(
-            "bg-green-100",
-            "text-green-700",
-            "bg-red-100",
-            "text-red-700"
-          );
-
-          if (
-            userAnswers[currentQuestionIndex] === currentQuestion.correctIndex
-          ) {
+          feedbackMessage.classList.remove("bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
+          if (userAnswers[currentQuestionIndex] === currentQuestion.correctIndex) {
             feedbackMessage.textContent = "Chính Xác! 👍";
             feedbackMessage.classList.add("bg-green-100", "text-green-700");
           } else {
             feedbackMessage.textContent =
-              "Rất tiếc, sai rồi. Đáp án đúng là: " +
-              String.fromCharCode(65 + currentQuestion.correctIndex);
+              "Rất tiếc, sai rồi. Đáp án đúng là: " + String.fromCharCode(65 + currentQuestion.correctIndex);
             feedbackMessage.classList.add("bg-red-100", "text-red-700");
           }
           feedbackMessage.style.display = "block";
+
+          // Hiển thị giải thích nếu có
+          if (currentQuestion.explanation) {
+            document.getElementById("explanation-text").textContent = currentQuestion.explanation;
+            document.getElementById("explanation-box").style.display = "block";
+          }
         }
 
-        document.getElementById("prev-btn").disabled =
-          currentQuestionIndex === 0;
-        document.getElementById("next-btn").disabled =
-          currentQuestionIndex === questions.length - 1;
+        document.getElementById("prev-btn").disabled = currentQuestionIndex === 0;
+        document.getElementById("next-btn").disabled = currentQuestionIndex === questions.length - 1;
 
         updateAllQuestionBoxes();
       }
@@ -1238,18 +1271,11 @@ D) Đáp án D"
           button.classList.add("disabled");
         });
 
-        const selectedButton = document.getElementById(
-          `option-${selectedIndex}`
-        );
+        const selectedButton = document.getElementById(`option-${selectedIndex}`);
         const correctButton = document.getElementById(`option-${correctIndex}`);
 
         const feedbackMessage = document.getElementById("feedback-message");
-        feedbackMessage.classList.remove(
-          "bg-green-100",
-          "text-green-700",
-          "bg-red-100",
-          "text-red-700"
-        );
+        feedbackMessage.classList.remove("bg-green-100", "text-green-700", "bg-red-100", "text-red-700");
 
         if (isCorrect) {
           selectedButton.classList.add("correct-answer");
@@ -1259,31 +1285,39 @@ D) Đáp án D"
           selectedButton.classList.add("wrong-answer");
           correctButton.classList.add("correct-answer");
           feedbackMessage.textContent =
-            "Rất tiếc, sai rồi. Đáp án đúng là: " +
-            String.fromCharCode(65 + correctIndex);
+            "Rất tiếc, sai rồi. Đáp án đúng là: " + String.fromCharCode(65 + correctIndex);
           feedbackMessage.classList.add("bg-red-100", "text-red-700");
         }
-
         feedbackMessage.style.display = "block";
-        userAnswers[currentQuestionIndex] = selectedIndex;
 
+        // Hiển thị giải thích nếu có
+        if (currentQuestion.explanation) {
+          document.getElementById("explanation-text").textContent = currentQuestion.explanation;
+          document.getElementById("explanation-box").style.display = "block";
+        }
+
+        userAnswers[currentQuestionIndex] = selectedIndex;
         updateStats();
         updateQuestionBox(currentQuestionIndex);
 
-        // Kiểm tra xem đã hoàn thành tất cả câu hỏi chưa
         const allAnswered = userAnswers.every((answer) => answer !== undefined);
 
-        setTimeout(() => {
-          if (allAnswered) {
-            // Tự động hoàn thành bài thi khi đã trả lời hết
-            showResults();
-          } else if (currentQuestionIndex < questions.length - 1) {
-            goToNextQuestion();
+        // Xử lý chuyển câu / kết thúc
+        if (allAnswered) {
+          startAutoAdvanceCountdown(() => showResults());
+          if (!autoAdvanceEnabled) {
+            // Không tự chuyển, để user bấm tay
           }
-        }, 1500);
+        } else if (currentQuestionIndex < questions.length - 1) {
+          startAutoAdvanceCountdown(() => {
+            goToNextQuestion();
+          });
+        }
+        // Nếu autoAdvance tắt thì không làm gì thêm, user tự nhấn
       }
 
       function goToPreviousQuestion() {
+        clearAutoAdvance();
         if (currentQuestionIndex > 0) {
           currentQuestionIndex--;
           displayQuestion();
@@ -1291,6 +1325,7 @@ D) Đáp án D"
       }
 
       function goToNextQuestion() {
+        clearAutoAdvance();
         if (currentQuestionIndex < questions.length - 1) {
           currentQuestionIndex++;
           displayQuestion();
@@ -1298,89 +1333,59 @@ D) Đáp án D"
       }
 
       function goToQuestion(index) {
+        clearAutoAdvance();
         currentQuestionIndex = index;
         displayQuestion();
       }
 
       function finishQuiz() {
         const unanswered = userAnswers.filter((a) => a === undefined).length;
-
         if (unanswered > 0) {
-          if (
-            !confirm(
-              `Bạn còn ${unanswered} câu chưa trả lời. Bạn có chắc muốn hoàn thành bài thi?`
-            )
-          ) {
-            return;
-          }
+          if (!confirm(`Bạn còn ${unanswered} câu chưa trả lời. Bạn có chắc muốn hoàn thành bài thi?`)) return;
         }
-
         showResults();
       }
 
       function showResults() {
+        clearAutoAdvance();
         stopTimer();
 
         totalCorrect = 0;
         totalWrong = 0;
-
         questions.forEach((question, index) => {
-          if (userAnswers[index] === question.correctIndex) {
-            totalCorrect++;
-          } else if (userAnswers[index] !== undefined) {
-            totalWrong++;
-          }
+          if (userAnswers[index] === question.correctIndex) totalCorrect++;
+          else if (userAnswers[index] !== undefined) totalWrong++;
         });
 
-        // Tính điểm trên thang 10
         const score = ((totalCorrect / questions.length) * 10).toFixed(2);
 
-        // Format thời gian
         const hours = Math.floor(elapsedTime / 3600000);
         const minutes = Math.floor((elapsedTime % 3600000) / 60000);
         const seconds = Math.floor((elapsedTime % 60000) / 1000);
-        const timeString = `${String(hours).padStart(2, "0")}:${String(
-          minutes
-        ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        const timeString = `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
 
-        document.getElementById(
-          "score-display"
-        ).textContent = `${totalCorrect}/${questions.length}`;
+        document.getElementById("score-display").textContent = `${totalCorrect}/${questions.length}`;
         document.getElementById("correct-count").textContent = totalCorrect;
-
-        // Cập nhật tất cả các phần tử hiển thị số câu sai
-        const wrongCountElements = document.querySelectorAll("#wrong-count");
-        wrongCountElements.forEach((el) => {
-          el.textContent = totalWrong;
-        });
-
+        document.getElementById("wrong-count").textContent = totalWrong;
+        document.getElementById("wrong-count-result").textContent = totalWrong;
         document.getElementById("max-questions").textContent = questions.length;
-
-        // Hiển thị điểm và thời gian
         document.getElementById("score-percentage").textContent = score;
         document.getElementById("time-taken").textContent = timeString;
 
-        const retakeMistakesButton = document.getElementById(
-          "retake-mistakes-button"
-        );
+        const retakeMistakesButton = document.getElementById("retake-mistakes-button");
         if (totalWrong === 0) {
           retakeMistakesButton.disabled = true;
-          retakeMistakesButton.classList.add(
-            "opacity-50",
-            "cursor-not-allowed"
-          );
+          retakeMistakesButton.classList.add("opacity-50", "cursor-not-allowed");
         } else {
           retakeMistakesButton.disabled = false;
-          retakeMistakesButton.classList.remove(
-            "opacity-50",
-            "cursor-not-allowed"
-          );
+          retakeMistakesButton.classList.remove("opacity-50", "cursor-not-allowed");
         }
 
         quizContainer.style.display = "none";
         resultsContainer.style.display = "block";
       }
-      // Initialize app - show auth screen
+
+      // Initialize app
       authContainer.style.display = "block";
     </script>
   </body>
